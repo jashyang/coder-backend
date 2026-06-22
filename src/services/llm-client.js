@@ -66,7 +66,7 @@ export async function analyze(code, language, optimize = false) {
     headers['Authorization'] = `Bearer ${config.MODEL_API_KEY}`;
   }
 
-  const response = await fetch(`${config.MODEL_URL}/chat/completions`, {
+  const response = await fetch(config.MODEL_URL, {
     method: 'POST',
     headers,
     body: JSON.stringify({
