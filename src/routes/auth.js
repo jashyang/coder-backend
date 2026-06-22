@@ -34,7 +34,7 @@ router.post('/init', async (req, res) => {
     }
 
     const password_hash = await bcrypt.hash(password, 10);
-    await query('INSERT INTO users (username, password_hash) VALUES ($1, $2)', [username, password_hash]);
+    await query('INSERT INTO users (username, password_hash, is_admin) VALUES ($1, $2, true)', [username, password_hash]);
 
     res.json({ message: '初始化成功，请登录' });
   } catch (err) {
@@ -53,7 +53,7 @@ router.post('/login', async (req, res) => {
     }
 
     const result = await query(
-      'SELECT id, username, password_hash, disabled FROM users WHERE username = $1',
+      'SELECT id, username, password_hash, disabled, is_admin FROM users WHERE username = $1',
       [username]
     );
     if (result.rows.length === 0) {
@@ -71,8 +71,8 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: '用户名或密码错误' });
     }
 
-    const token = jwt.sign({ id: user.id, username: user.username }, config.JWT_SECRET, { expiresIn: '24h' });
-    res.json({ token, username: user.username });
+    const token = jwt.sign({ id: user.id, username: user.username, is_admin: user.is_admin }, config.JWT_SECRET, { expiresIn: '24h' });
+    res.json({ token, username: user.username, is_admin: user.is_admin });
   } catch (err) {
     console.error('登录失败:', err);
     res.status(500).json({ error: '登录失败，请稍后重试' });
@@ -85,7 +85,7 @@ router.post('/login', async (req, res) => {
 router.get('/users', authMiddleware, async (req, res) => {
   try {
     const result = await query(
-      'SELECT id, username, disabled, created_at FROM users ORDER BY created_at ASC'
+      'SELECT id, username, disabled, is_admin, created_at FROM users ORDER BY created_at ASC'
     );
     res.json({ users: result.rows });
   } catch (err) {
