@@ -81,6 +81,38 @@ router.post('/login', async (req, res) => {
 
 // ── 用户管理（需登录） ──────────────────────────────────
 
+// GET /api/auth/draft — 获取当前用户的草稿
+router.get('/draft', authMiddleware, async (req, res) => {
+  try {
+    const result = await query(
+      'SELECT draft, draft_language FROM users WHERE id = $1',
+      [req.user.id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: '用户不存在' });
+    }
+    res.json({ draft: result.rows[0].draft || '', language: result.rows[0].draft_language || 'python' });
+  } catch (err) {
+    console.error('获取草稿失败:', err);
+    res.status(500).json({ error: '获取草稿失败' });
+  }
+});
+
+// PUT /api/auth/draft — 保存当前用户的草稿
+router.put('/draft', authMiddleware, async (req, res) => {
+  try {
+    const { draft, language } = req.body;
+    await query(
+      'UPDATE users SET draft = $1, draft_language = $2 WHERE id = $3',
+      [draft || '', language || 'python', req.user.id]
+    );
+    res.json({ message: '草稿已保存' });
+  } catch (err) {
+    console.error('保存草稿失败:', err);
+    res.status(500).json({ error: '保存草稿失败' });
+  }
+});
+
 // GET /api/auth/users — 获取用户列表
 router.get('/users', authMiddleware, async (req, res) => {
   try {
