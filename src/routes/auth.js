@@ -116,6 +116,34 @@ router.delete('/users/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// POST /api/auth/users — 创建用户（管理员）
+router.post('/users', authMiddleware, async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password || username.length < 2 || password.length < 4) {
+      return res.status(400).json({ error: '用户名至少2个字符，密码至少4个字符' });
+    }
+
+    // 检查用户名是否已存在
+    const existing = await query('SELECT id FROM users WHERE username = $1', [username]);
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ error: '用户名已存在' });
+    }
+
+    const password_hash = await bcrypt.hash(password, 10);
+    const result = await query(
+      'INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username, disabled, created_at',
+      [username, password_hash]
+    );
+
+    res.status(201).json({ message: '用户创建成功', user: result.rows[0] });
+  } catch (err) {
+    console.error('创建用户失败:', err);
+    res.status(500).json({ error: '创建用户失败' });
+  }
+});
+
 // PATCH /api/auth/users/:id/disable — 切换禁用状态
 router.patch('/users/:id/disable', authMiddleware, async (req, res) => {
   try {
