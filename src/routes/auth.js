@@ -91,7 +91,7 @@ router.get('/draft', authMiddleware, async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: '用户不存在' });
     }
-    res.json({ draft: result.rows[0].draft || '', language: result.rows[0].draft_language || 'python' });
+    res.json({ draft: result.rows[0].draft || '', language: result.rows[0].draft_language || '' });
   } catch (err) {
     console.error('获取草稿失败:', err);
     res.status(500).json({ error: '获取草稿失败' });
@@ -104,7 +104,7 @@ router.put('/draft', authMiddleware, async (req, res) => {
     const { draft, language } = req.body;
     await query(
       'UPDATE users SET draft = $1, draft_language = $2 WHERE id = $3',
-      [draft || '', language || 'python', req.user.id]
+      [draft || '', language || '', req.user.id]
     );
     res.json({ message: '草稿已保存' });
   } catch (err) {
