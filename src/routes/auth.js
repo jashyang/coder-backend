@@ -6,27 +6,40 @@ import { config } from '../config.js';
 
 const router = Router();
 
-// POST /api/auth/register
-router.post('/register', async (req, res) => {
+// GET /api/auth/status — 检查系统是否已初始化（是否有用户）
+router.get('/status', async (_req, res) => {
+  try {
+    const result = await query('SELECT COUNT(*)::int AS count FROM users');
+    const initialized = result.rows[0].count > 0;
+    res.json({ initialized });
+  } catch (err) {
+    console.error('检查初始化状态失败:', err);
+    res.status(500).json({ error: '检查初始化状态失败' });
+  }
+});
+
+// POST /api/auth/init — 系统初始化，创建管理员账户（仅当无用户时有效）
+router.post('/init', async (req, res) => {
   try {
     const { username, password } = req.body;
+
+    // 检查是否已初始化
+    const countResult = await query('SELECT COUNT(*)::int AS count FROM users');
+    if (countResult.rows[0].count > 0) {
+      return res.status(400).json({ error: '系统已初始化，不能重复创建管理员' });
+    }
 
     if (!username || !password || username.length < 2 || password.length < 4) {
       return res.status(400).json({ error: '用户名至少2个字符，密码至少4个字符' });
     }
 
-    const exists = await query('SELECT id FROM users WHERE username = $1', [username]);
-    if (exists.rows.length > 0) {
-      return res.status(409).json({ error: '用户名已存在' });
-    }
-
     const password_hash = await bcrypt.hash(password, 10);
     await query('INSERT INTO users (username, password_hash) VALUES ($1, $2)', [username, password_hash]);
 
-    res.json({ message: '注册成功' });
+    res.json({ message: '初始化成功，请登录' });
   } catch (err) {
-    console.error('注册失败:', err);
-    res.status(500).json({ error: '注册失败，请稍后重试' });
+    console.error('初始化失败:', err);
+    res.status(500).json({ error: '初始化失败，请稍后重试' });
   }
 });
 
