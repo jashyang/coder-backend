@@ -1,9 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { config } from './config.js';
-import { init as initDB } from './db.js';
 import analyzeRouter from './routes/analyze.js';
-import authRouter from './routes/auth.js';
 import authMiddleware from './middleware/auth.js';
 
 const app = express();
@@ -23,16 +21,12 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
 });
 
-// 认证路由（无需认证）
-app.use('/api/auth', authRouter);
-
 // 代码分析路由（需要认证）
 app.use('/api/analyze', authMiddleware, analyzeRouter);
 
 // 启动
 (async () => {
   try {
-    await initDB();
     app.listen(config.PORT, () => {
       console.log(`coder-backend 服务已启动，监听端口 ${config.PORT}`);
     });

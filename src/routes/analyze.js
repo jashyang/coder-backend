@@ -9,6 +9,7 @@ const TIMEOUT_MS = 60_000;
 /**
  * POST /api/analyze
  * 分析代码错误并提供优化建议
+ * authMiddleware 已注入 req.user = { userId, phone, newapiKey, modelName, balance }
  */
 router.post('/', (req, res) => {
   const timer = setTimeout(() => {
@@ -27,7 +28,8 @@ router.post('/', (req, res) => {
       }
 
       const detectedLanguage = language || languageService.detect(code);
-      const result = await llmClient.analyze(code, detectedLanguage, optimize);
+      // 用用户的 NewAPI key 调用 LLM
+      const result = await llmClient.analyze(code, detectedLanguage, optimize, req.user?.newapiKey || '');
 
       clearTimeout(timer);
 
@@ -37,6 +39,7 @@ router.post('/', (req, res) => {
           errors: result.errors || [],
           optimization: result.optimization || { suggestions: [], fixed_code: '' },
           no_errors: result.no_errors ?? false,
+          balance: req.user?.balance || 0,
         });
       }
     } catch (err) {
