@@ -1,4 +1,5 @@
 import { config } from '../config.js';
+import JSON5 from 'json5';
 
 /**
  * 构造系统提示词
@@ -19,30 +20,50 @@ function buildSystemPrompt(language, optimize) {
 }
 
 /**
- * 从文本中提取 JSON
+ * 将 JS 对象字面量修复为标准 JSON
+ * {key: value} → {"key": "value"}（保留 true/false/null/数字）
+ */
+function jsObjectToJson(text) {
+  let result = text.trim();
+  // 确保外层有 {}
+  if (!result.startsWith('{')) return text;
+
+  // 1. 给未加引号的键名加引号: {key: → {"key":   ,key: → ,"key":
+  result = result.replace(/([,{])\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":');
+
+  // 2. 给未加引号的字符串值加引号: :value → :"value"
+  // 匹配 : 后面跟着一个非引号、非 {、非 [、非数字、非 true/false/null 的 token
+  // 使用字符逐个扫描的方式处理，但先用简单方式
+  result = result.replace(/:\s*([a-zA-Z_\u4e00-\u9fff][a-zA-Z0-9_\u4e00-\u9fff]*)\s*([,}\]])/g, ':"$1"$2');
+  result = result.replace(/:\s*([a-zA-Z_\u4e00-\u9fff][a-zA-Z0-9_\u4e00-\u9fff]*)\s*$/g, ':"$1"');
+
+  return result;
+}
+
+/**
+ * 从文本中提取 JSON（支持非标准格式）
  */
 function extractJson(text) {
-  try {
-    return JSON.parse(text);
-  } catch {
-    const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (codeBlockMatch) {
-      try {
-        return JSON.parse(codeBlockMatch[1].trim());
-      } catch {
-        return null;
-      }
-    }
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        return JSON.parse(jsonMatch[0]);
-      } catch {
-        return null;
-      }
-    }
-    return null;
+  // 1. 直接 JSON.parse
+  try { return JSON.parse(text); } catch { /* continue */ }
+
+  // 2. 提取 ```json ... ``` 或 ``` ... ``` 代码块
+  const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (codeBlockMatch) {
+    const block = codeBlockMatch[1].trim();
+    try { return JSON5.parse(block); } catch { /* continue */ }
+    try { return JSON.parse(jsObjectToJson(block)); } catch { /* continue */ }
   }
+
+  // 3. 提取最外层 {} 对象
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    const obj = jsonMatch[0];
+    try { return JSON5.parse(obj); } catch { /* continue */ }
+    try { return JSON.parse(jsObjectToJson(obj)); } catch { /* continue */ }
+  }
+
+  return null;
 }
 
 /**
