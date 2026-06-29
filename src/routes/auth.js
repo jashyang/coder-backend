@@ -82,8 +82,8 @@ router.post('/login', async (req, res) => {
     headers: {
       'Content-Type': 'application/json',
       'X-Service-API-Key': config.ACCOUNT_API_KEY,
+      'Authorization': `Bearer ${data.token}`,
     },
-    body: JSON.stringify({ token: data.token }),
   });
 
   if (!verifyResp.ok) {
