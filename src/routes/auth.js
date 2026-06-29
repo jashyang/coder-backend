@@ -10,7 +10,7 @@ async function callAccountCenter(path, body) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Service-API-Key': config.SERVICE_API_KEY,
+      'X-Service-API-Key': config.ACCOUNT_API_KEY,
     },
     body: JSON.stringify(body),
   });
@@ -81,7 +81,7 @@ router.post('/login', async (req, res) => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Service-API-Key': config.SERVICE_API_KEY,
+      'X-Service-API-Key': config.ACCOUNT_API_KEY,
     },
     body: JSON.stringify({ token: data.token }),
   });

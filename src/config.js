@@ -10,5 +10,5 @@ export const config = {
   ACCOUNT_CENTER_URL: process.env.ACCOUNT_CENTER_URL || 'http://47.111.10.148/account/api/v1',
   NEWAPI_GROUP: process.env.NEWAPI_GROUP || 'coder-group',
   JWT_SECRET: process.env.JWT_SECRET || 'coder-jwt-secret-dev',
-  SERVICE_API_KEY: process.env.SERVICE_API_KEY || '',
+  ACCOUNT_API_KEY: process.env.ACCOUNT_API_KEY || '',
 };
