@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { config } from './config.js';
 import analyzeRouter from './routes/analyze.js';
+import authRouter from './routes/auth.js';
 import authMiddleware from './middleware/auth.js';
 
 const app = express();
@@ -20,6 +21,9 @@ app.use(express.json({ limit: '50kb' }));
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
 });
+
+// 认证路由（send-code / register / login，无需本地 JWT）
+app.use('/api/auth', authRouter);
 
 // 代码分析路由（需要认证）
 app.use('/api/analyze', authMiddleware, analyzeRouter);
