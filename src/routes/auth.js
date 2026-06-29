@@ -72,7 +72,7 @@ router.post('/login', async (req, res) => {
   const loginPhone = phone || username;
   if (!loginPhone) return res.status(400).json({ error: '手机号不能为空' });
 
-  const loginBody = code ? { phone: loginPhone, code } : { phone: loginPhone, password };
+  const loginBody = code ? { phone: loginPhone, code, group: config.NEWAPI_GROUP, default_model: config.MODEL_NAME } : { phone: loginPhone, password };
   const { ok, status, data } = await callAccountCenter('/auth/login', loginBody);
 
   if (!ok) return res.status(status).json(data);
