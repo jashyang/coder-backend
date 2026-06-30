@@ -17,13 +17,18 @@ async function callAccount(path, method = 'GET', body = null) {
     opts.headers['Content-Type'] = 'application/json';
     opts.body = JSON.stringify(body);
   }
-  const resp = await fetch(url, opts);
-  const data = await resp.json();
-  return { ok: resp.ok, status: resp.status, data };
+  try {
+    const resp = await fetch(url, opts);
+    const data = await resp.json();
+    return { ok: resp.ok, status: resp.status, data };
+  } catch (err) {
+    console.error(`[Proxy] callAccount failed: ${url}`, err.message);
+    return { ok: false, status: 502, data: { error: '后端服务异常' } };
+  }
 }
 
 // Helper: call payment center
-async function callPayment(path, method = 'POST', body = null) {
+async function callPayment(path, method = 'GET', body = null) {
   const url = `${config.PAYMENT_URL}${path}`;
   const opts = {
     method,
@@ -33,9 +38,14 @@ async function callPayment(path, method = 'POST', body = null) {
     },
     body: body ? JSON.stringify(body) : null,
   };
-  const resp = await fetch(url, opts);
-  const data = await resp.json();
-  return { ok: resp.ok, status: resp.status, data };
+  try {
+    const resp = await fetch(url, opts);
+    const data = await resp.json();
+    return { ok: resp.ok, status: resp.status, data };
+  } catch (err) {
+    console.error(`[Proxy] callPayment failed: ${url}`, err.message);
+    return { ok: false, status: 502, data: { error: '后端服务异常' } };
+  }
 }
 
 // All routes require auth
@@ -43,7 +53,7 @@ router.use(authMiddleware);
 
 // GET /api/user/balance
 router.get('/balance', async (req, res) => {
-  const { ok, status, data } = await callPayment(`/balance?user_id=${req.user.userId}`);
+  const { ok, status, data } = await callPayment(`/balance?user_id=${req.user.userId}`, 'GET');
   res.status(status).json(data);
 });
 
@@ -91,7 +101,7 @@ router.post('/topup', async (req, res) => {
 
 // GET /api/user/orders — proxy to payment service
 router.get('/orders', async (req, res) => {
-  const { ok, status, data } = await callPayment(`/order/list?user_id=${req.user.userId}`);
+  const { ok, status, data } = await callPayment(`/order/list?user_id=${req.user.userId}`, 'GET');
   res.status(status).json(data);
 });
 
