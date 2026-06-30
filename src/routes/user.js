@@ -24,7 +24,7 @@ async function callAccount(path, method = 'GET', body = null) {
 
 // Helper: call payment center
 async function callPayment(path, method = 'POST', body = null) {
-  const url = `${config.PAYMENT_CENTER_URL}${path}`;
+  const url = `${config.PAYMENT_URL}${path}`;
   const opts = {
     method,
     headers: {
@@ -43,7 +43,7 @@ router.use(authMiddleware);
 
 // GET /api/user/balance
 router.get('/balance', async (req, res) => {
-  const { ok, status, data } = await callAccount(`/balance?user_id=${req.user.userId}`);
+  const { ok, status, data } = await callPayment(`/balance?user_id=${req.user.userId}`);
   res.status(status).json(data);
 });
 
@@ -74,7 +74,7 @@ router.post('/change-password', async (req, res) => {
   res.status(status).json(data);
 });
 
-// POST /api/user/topup — proxy to payment service
+// POST /api/user/topup — proxy to payment service (app=coder)
 router.post('/topup', async (req, res) => {
   const { amount, channel } = req.body;
   if (!amount || amount <= 0) {
@@ -84,7 +84,14 @@ router.post('/topup', async (req, res) => {
     user_id: req.user.userId,
     amount,
     channel: channel || 'wechat',
+    app: 'coder',
   });
+  res.status(status).json(data);
+});
+
+// GET /api/user/orders — proxy to payment service
+router.get('/orders', async (req, res) => {
+  const { ok, status, data } = await callPayment(`/order/list?user_id=${req.user.userId}`);
   res.status(status).json(data);
 });
 

@@ -8,7 +8,7 @@ export const config = {
   MODEL_URL: process.env.MODEL_URL || 'http://47.111.10.148:3000/v1/chat/completions',
   MODEL_NAME: process.env.MODEL_NAME || 'coder-troubleshooting',
   ACCOUNT_CENTER_URL: process.env.ACCOUNT_CENTER_URL || 'http://47.111.10.148/account/api/v1',
-  PAYMENT_CENTER_URL: process.env.PAYMENT_CENTER_URL || 'http://47.111.10.148/payment/api/v1',
+  PAYMENT_URL: process.env.PAYMENT_URL || 'http://47.111.10.148/payment/api/v1',
   NEWAPI_TOKEN_GROUP: process.env.NEWAPI_TOKEN_GROUP || 'coder-troubleshooting',
   NEWAPI_ACCOUNT_GROUP: process.env.NEWAPI_ACCOUNT_GROUP || 'coder-troubleshooting',
   JWT_SECRET: process.env.JWT_SECRET || 'coder-jwt-secret-dev',
