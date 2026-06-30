@@ -46,7 +46,7 @@ router.post('/register', async (req, res) => {
 
   const { ok, status, data } = await callAccountCenter('/auth/register', {
     phone, code, password,
-    group: group || config.NEWAPI_GROUP,
+    group: group || config.NEWAPI_ACCOUNT_GROUP,
     default_model: default_model || config.MODEL_NAME,
   });
 
@@ -58,7 +58,7 @@ router.post('/register', async (req, res) => {
       phone: data.phone,
       newapiKey: data.newapi_key || '', modelName: config.MODEL_NAME,
       balance: 0,
-      group: config.NEWAPI_GROUP,
+      group: config.NEWAPI_TOKEN_GROUP,
     },
     config.JWT_SECRET,
     { expiresIn: '7d' }
@@ -72,7 +72,7 @@ router.post('/login', async (req, res) => {
   const loginPhone = phone || username;
   if (!loginPhone) return res.status(400).json({ error: '手机号不能为空' });
 
-  const loginBody = code ? { phone: loginPhone, code, group: config.NEWAPI_GROUP, default_model: config.MODEL_NAME } : { phone: loginPhone, password };
+  const loginBody = code ? { phone: loginPhone, code, group: config.NEWAPI_ACCOUNT_GROUP, default_model: config.MODEL_NAME } : { phone: loginPhone, password };
   const { ok, status, data } = await callAccountCenter('/auth/login', loginBody);
 
   if (!ok) return res.status(status).json(data);
@@ -98,7 +98,7 @@ router.post('/login', async (req, res) => {
       phone: userData.phone,
       newapiKey: userData.newapi_key || '', modelName: userData.model_name || config.MODEL_NAME,
       balance: userData.balance || 0,
-      group: userData.group || config.NEWAPI_GROUP,
+      group: userData.group || config.NEWAPI_TOKEN_GROUP,
     },
     config.JWT_SECRET,
     { expiresIn: '7d' }

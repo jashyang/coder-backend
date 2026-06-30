@@ -21,7 +21,7 @@ export default async function authMiddleware(req, res, next) {
       newapiKey: decoded.newapiKey,
       modelName: decoded.modelName || config.MODEL_NAME,
       balance: decoded.balance || 0,
-      group: decoded.group || config.NEWAPI_GROUP,
+      group: decoded.group || config.NEWAPI_TOKEN_GROUP,
     };
     next();
   } catch (err) {
