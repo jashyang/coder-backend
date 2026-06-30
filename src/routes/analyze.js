@@ -44,10 +44,34 @@ router.post('/', (req, res) => {
       }
     } catch (err) {
       clearTimeout(timer);
-      console.error('代码分析出错:', err);
+
+      const message = err.message || '';
+      let status = 500;
+      let response = { error: '分析出错，请稍后重试' };
+
+      // 区分不同类型的错误
+      if (message.includes('insufficient_user_quota') || message.includes('用户额度不足')) {
+        status = 403;
+        response = {
+          error: '你的账户余额不足，请向管理员充值后再试',
+          insufficient_quota: true,
+        };
+      } else if (message.includes('model_price_error') || message.includes('价格尚未由管理员配置')) {
+        status = 400;
+        response = {
+          error: '当前模型价格未配置，请联系管理员',
+          model_config_error: true,
+        };
+      } else if (message.includes('LLM API 请求失败')) {
+        // 透传 NewAPI 的其他错误
+        status = 502;
+        response = { error: message.replace('LLM API 请求失败: ', '') };
+      }
+
+      console.error('代码分析出错:', message);
 
       if (!res.headersSent) {
-        res.status(500).json({ error: '分析出错，请稍后重试' });
+        res.status(status).json(response);
       }
     }
   })();
