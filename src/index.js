@@ -3,6 +3,7 @@ import cors from 'cors';
 import { config } from './config.js';
 import analyzeRouter from './routes/analyze.js';
 import authRouter from './routes/auth.js';
+import userRouter from './routes/user.js';
 import authMiddleware from './middleware/auth.js';
 
 const app = express();
@@ -27,6 +28,9 @@ app.use('/api/auth', authRouter);
 
 // 代码分析路由（需要认证）
 app.use('/api/analyze', authMiddleware, analyzeRouter);
+
+// 个人中心路由（需要认证）
+app.use('/api/user', userRouter);
 
 // 启动
 (async () => {
