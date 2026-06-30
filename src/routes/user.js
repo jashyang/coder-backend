@@ -76,13 +76,14 @@ router.post('/change-password', async (req, res) => {
 
 // POST /api/user/topup — proxy to payment service
 router.post('/topup', async (req, res) => {
-  const { amount } = req.body;
+  const { amount, channel } = req.body;
   if (!amount || amount <= 0) {
     return res.status(400).json({ error: '金额必须大于0' });
   }
   const { ok, status, data } = await callPayment('/order/create', 'POST', {
     user_id: req.user.userId,
     amount,
+    channel: channel || 'wechat',
   });
   res.status(status).json(data);
 });
